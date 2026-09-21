@@ -223,6 +223,17 @@ details.tk[open] summary .chev{transform:rotate(90deg)}
 .sim{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#B8B8C0;margin-top:10px}
 .sim button{background:none;border:1px solid #4A4A52;color:#D4D4DA;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:12px}
 .mt{margin-top:16px}
+.guide{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--rojo);border-radius:12px;margin:0 0 18px;font-size:14px}
+.guide>summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.guide>summary::-webkit-details-marker{display:none}
+.guide>summary::before{content:"▸";color:var(--rojo);transition:transform .15s}
+.guide[open]>summary::before{transform:rotate(90deg)}
+.guide .hu{margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
+.g-body{padding:0 18px 14px;display:grid;gap:8px}
+.g-body p{margin:0}.g-body h4{margin:6px 0 0;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.g-body ol,.g-body ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.dlg-guide{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;margin:0 0 12px}
+.dlg-guide b{display:block;margin-bottom:4px}.dlg-guide ol,.dlg-guide ul{margin:0;padding-left:18px;display:grid;gap:2px}
 @media (max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.form{grid-template-columns:1fr}}
 </style>
 </head>
@@ -304,7 +315,7 @@ const SEED=()=>({
   processed:{},entries:[],pend:[],sol:[],runs:[],seq:{run:0,sol:0,ticket:48410}
 });
 let S; try{S=JSON.parse(localStorage.getItem(STORE))}catch(e){}
-const UI={role:"colab",period:null,cat:"",q:"",emp:"",sortDesc:true,runOpen:null};
+const UI={role:"colab",period:null,cat:"",q:"",emp:"",sortDesc:true,runOpen:null,g:{}};
 const ROLES={colab:{nombre:"María Salazar",rol:"Colaboradora · Soporte N2",empId:"e1"},sac:{nombre:"Diego Andrade",rol:"Coordinador SAC"},rrhh:{nombre:"Paola Ríos",rol:"Recursos Humanos"},admin:{nombre:"Jordan Lapo",rol:"Administrador del sistema"}};
 const ROUTES={
   inicio:{t:"Inicio",roles:["colab","sac","rrhh","admin"],icon:'<path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>'},
@@ -389,7 +400,38 @@ function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show")
 function periods(){const set=new Set([periodOf(S.config.now).start]);S.entries.forEach(e=>set.add(e.periodo));set.add(periodOf("2026-08-01").start);
   return [...set].sort().reverse().map(s=>periodOf(s+"T12:00"))}
 function myEntries(){const p=UI.period;return S.entries.filter(e=>e.periodo===p&&(UI.role!=="colab"||e.empId===ROLES.colab.empId))}
-function head(title,sub,actions=""){return `<div class="view-head"><div><h1>${title}</h1><p class="sub">${sub}</p></div><div class="head-actions">${actions}</div></div>`}
+/* Guía por pantalla: explica qué es, qué hacer y qué reglas aplican (fuente: Guía HE-GLPI-01 a 05) */
+const REGLAS_BASE=["Solo se procesan tareas de tickets <b>Cerrados</b>, y el ticket debe haberse cerrado dentro del período de nómina (del 21 del mes anterior al 20 del actual).","Se excluyen las tareas de categoría <b>Standby</b>.","Jornada ordinaria de referencia: lunes a viernes 09:00–18:00; manda el turno del empleado en Nómina.","Solo cuenta el tiempo <b>fuera de jornada</b>; sábado, domingo y feriado tienen su propia regla."];
+const GUIDE={
+ inicio:{
+  colab:{hu:"HE-GLPI-04",que:"Resumen de las horas extras que el sistema calculó para ti a partir de las tareas de tus tickets cerrados en GLPI, dentro del período de nómina.",
+   hacer:["Revisa tu <b>tiempo elegible</b> y cuántos registros de GLPI lo forman.","Pulsa <b>Ver mis horas extras</b> para ver ticket, cliente, inicio, fin y tiempo de cada registro.","Si falta una tarea, revisa si su ticket ya está Cerrado: las tareas de tickets abiertos se procesan cuando se cierran.","Si trabajaste fuera de turno y no aparece nada, avisa a SAC: puede ser un problema con tu número de identificación."],reglas:REGLAS_BASE},
+  def:{hu:"HE-GLPI-01 a 05",que:"Estado de la integración GLPI → Nómina en el período: cuánto se registró y cuánto quedó sin homologar.",
+   hacer:["Revisa la <b>última sincronización</b> y cuántos registros quedaron sin homologar.","<b>Coordinador SAC:</b> entra a <b>Homologación</b> y corrige los números pendientes; en <b>Tickets GLPI</b> puedes crear tickets y tareas de prueba.","<b>Recursos Humanos:</b> atiende las solicitudes de corrección en <b>Empleados Nómina</b>.","<b>Administrador:</b> ejecuta o revisa la <b>Sincronización</b> y su bitácora."],reglas:REGLAS_BASE}},
+ horas:{
+  colab:{hu:"HE-GLPI-04",que:"Tus registros de horas extras con origen GLPI.",
+   hacer:["Busca por ticket, cliente o descripción, o filtra por <b>Soporte</b> / <b>Proyectos</b>.","Selecciona un registro para abrir el detalle: origen, ticket, inicio, fin, tiempo elegible, categoría, descripción, cliente y trazabilidad.","En la franja del día, la barra roja es el tiempo elegible y el fondo gris es tu turno."],
+   reglas:["Es de consulta: aquí solo ves tus horas.","Si la tarea empieza dentro del turno y termina fuera, solo cuenta el tramo de fuera.","Los registros de fin de semana o feriado se marcan aparte."]},
+  def:{hu:"HE-GLPI-03 · 04",que:"Registros de horas extras con origen GLPI ya asociados a cada colaborador.",
+   hacer:["Filtra por colaborador, categoría o texto.","Abre un registro para ver el detalle y la <b>trazabilidad</b> (cómo se calculó y de qué ticket viene).","Verifica que el origen sea GLPI y que el tiempo elegible cuadre con el turno del colaborador."],
+   reglas:["Solo aparecen colaboradores <b>homologados</b> (su N° de identificación coincide con Nómina).","Los no homologados están en la pestaña Homologación."]}},
+ homologacion:{def:{hu:"HE-GLPI-05",que:"Tareas de GLPI cuyo N° de identificación no coincide con ningún colaborador de Nómina. Mientras no se homologuen, no aparecen en el perfil de nadie.",
+   hacer:["Compara el N° de identificación que tiene GLPI con el del técnico.","Si el número en <b>GLPI está mal</b>: pulsa <b>Corregir en GLPI</b>, escribe el número correcto (10 dígitos) y guarda.","Si el número en <b>GLPI está bien y Nómina está mal</b>: pulsa <b>Solicitar a RRHH</b> para que lo corrijan en Nómina.","Tras la corrección, la siguiente sincronización <b>revalida</b> y asocia las horas al colaborador. Queda registrado quién corrigió, cuándo y el número anterior y nuevo."],
+   reglas:["Esta pestaña es del Coordinador SAC.","La corrección en GLPI aplica a todas las tareas de ese usuario.","SAC corrige GLPI; Recursos Humanos corrige Nómina."]}},
+ glpi:{def:{hu:"HE-GLPI-01 · 02",que:"Simula GLPI, la fuente de los datos. Sirve para probar qué hace la integración con cada tarea.",
+   hacer:["<b>Nuevo ticket:</b> registra cliente y estado.","<b>Agregar tarea:</b> usuario, categoría, inicio, fin y descripción del trabajo.","<b>Cerrar ticket:</b> solo los tickets Cerrados entran a horas extras; uno abierto espera.","Después de la sincronización (diaria 02:00), abre el ticket y mira el resultado de cada tarea."],
+   reglas:REGLAS_BASE.concat(["Un ticket ya procesado no se vuelve a procesar ni genera registros duplicados."])}},
+ nomina:{def:{hu:"HE-GLPI-04 · 05",que:"Fuente oficial del N° de identificación, turno y feriados de cada colaborador.",
+   hacer:["Atiende las <b>solicitudes de corrección</b> que llegan desde SAC.","Corrige el N° de identificación cuando GLPI está bien y Nómina está mal.","Revisa el turno: define qué parte del tiempo cuenta como fuera de jornada."],
+   reglas:["El cambio de turno aplica a cálculos futuros; los registros ya creados conservan el turno con que se calcularon.","El N° de identificación debe ser único."]}},
+ sync:{def:{hu:"HE-GLPI-01 · 02 · 03",que:"Proceso que lee GLPI, filtra, calcula el tiempo elegible y homologa a cada colaborador.",
+   hacer:["Se ejecuta solo cada día a las 02:00. Pulsa <b>Ejecutar ahora</b> para forzarlo.","Abre una ejecución para ver el resultado de cada tarea: registrada, omitida o no homologada.","Comprueba que las tareas Standby y las de tickets abiertos figuren como omitidas."],
+   reglas:REGLAS_BASE.concat(["Un ticket ya procesado no se vuelve a procesar."])}}
+};
+let CURV="inicio";
+function guide(k){const g=GUIDE[k];if(!g)return"";const x=g[UI.role]||g.def;if(!x)return"";
+  return `<details class="guide" data-k="${k}" ${UI.g[k]===false?"":"open"}><summary>¿Qué se hace en esta pantalla? <span class="hu">${x.hu}</span></summary><div class="g-body"><p>${x.que}</p><h4>Qué tienes que hacer</h4><ol>${x.hacer.map(i=>`<li>${i}</li>`).join("")}</ol><h4>Reglas que aplican</h4><ul>${x.reglas.map(i=>`<li>${i}</li>`).join("")}</ul></div></details>`}
+function head(title,sub,actions=""){return `<div class="view-head"><div><h1>${title}</h1><p class="sub">${sub}</p></div><div class="head-actions">${actions}</div></div>`+guide(CURV)}
 /* ============ Vistas ============ */
 const V={};
 V.inicio=()=>{
@@ -544,12 +586,14 @@ const ACT={
   sort(){UI.sortDesc=!UI.sortDesc;render()},
   fixglpi(b){const x=S.pend.find(p=>p.key===b.dataset.key),k=ticket(x.ticketId).tasks.find(y=>y.id===x.taskId),u=gUser(k.user);
     dialog("Corregir número en GLPI",`<p class="sub" style="margin:0">Usuario <b>${esc(u.user)}</b>. Verifica la cédula del técnico y actualiza su perfil en GLPI.</p>
+    <div class="dlg-guide"><b>Qué hacer (HE-GLPI-05)</b><ol><li>Confirma que el número en GLPI corresponde a quien hizo la tarea.</li><li>Si está mal, escribe el correcto y guarda: el registro queda listo para revalidarse.</li><li>Si el número de GLPI es correcto, cancela y usa <b>Solicitar a RRHH</b>.</li></ol><small>Se guarda quién, cuándo, el número anterior y el nuevo.</small></div>
     <div class="field"><label for="f-id">N° de identificación</label><input id="f-id" inputmode="numeric" value="${esc(u.idNum)}"><div class="help">10 dígitos, sin guiones. El cambio aplica a todas las tareas de este usuario.</div></div>`,"Guardar corrección",()=>{
       const v=val("f-id");if(!/^\d{10}$/.test(v))return"El número debe tener exactamente 10 dígitos.";if(v===u.idNum)return"El número es igual al actual; cámbialo o cancela.";
       const old=u.idNum;u.idNum=v;S.pend.filter(p=>ticket(p.ticketId).tasks.find(y=>y.id===p.taskId).user===u.user).forEach(p=>{p.estado="revalidar";p.trail.push({at:S.config.now,txt:`${ROLES[UI.role].nombre} (SAC) corrigió el N° en GLPI: ${old} → ${v}.`})});
       save();toast("Corrección guardada. Se revalida en la próxima sincronización.")})},
   askrrhh(b){const x=S.pend.find(p=>p.key===b.dataset.key),k=ticket(x.ticketId).tasks.find(y=>y.id===x.taskId),u=gUser(k.user);
     dialog("Solicitar corrección a RRHH",`<p class="sub" style="margin:0">Usa esta opción si el número en GLPI (<b>${esc(u.idNum)}</b>) es correcto y el de Nómina no.</p>
+    <div class="dlg-guide"><b>Qué hacer (HE-GLPI-05)</b><ol><li>Explica a Recursos Humanos qué número es el correcto y dónde está el error en Nómina.</li><li>RRHH corrige el perfil oficial en Nómina.</li><li>Cuando lo marquen como realizado, el registro se revalida en la siguiente sincronización y pasa al perfil del colaborador.</li></ol></div>
     <div class="field"><label for="f-msg">Detalle para Recursos Humanos</label><textarea id="f-msg" rows="4" placeholder="Ej.: La cédula de Ana Vera es ${esc(u.idNum)}; en Nómina figura con dos dígitos invertidos."></textarea></div>`,"Enviar solicitud",()=>{
       const m=val("f-msg");if(m.length<10)return"Escribe el detalle de la corrección (mínimo 10 caracteres).";
       S.seq.sol++;S.sol.push({id:S.seq.sol,key:x.key,ticketId:x.ticketId,user:u.user,idNum:u.idNum,msg:m,at:S.config.now,estado:"abierta"});
@@ -568,13 +612,13 @@ const ACT={
       const dias=[...document.querySelectorAll('[name=dia]:checked')].map(x=>+x.value);if(!dias.length)return"Selecciona al menos un día laborable.";
       const ini=+val("f-ini"),fin=+val("f-fin");if(fin<=ini)return"El fin del turno debe ser posterior al inicio.";
       e.cedula=c;e.turno={ini,fin,dias};save();toast(`${e.nombre} actualizado`)})},
-  newticket(){dialog("Nuevo ticket en GLPI",`<div class="form"><div class="field full"><label for="f-cli">Cliente</label><input id="f-cli" placeholder="Ej.: Hospital San Rafael"></div>
+  newticket(){dialog("Nuevo ticket en GLPI",`<div class="dlg-guide"><b>Qué hacer (HE-GLPI-01)</b><ol><li>Escribe el cliente atendido y elige el estado.</li><li>Crea el ticket y luego <b>agrégale tareas</b>.</li><li>Ciérralo: solo los tickets <b>Cerrados</b> pasan a horas extras, y la fecha de cierre debe caer en el período 21→20.</li></ol></div><div class="form"><div class="field full"><label for="f-cli">Cliente</label><input id="f-cli" placeholder="Ej.: Hospital San Rafael"></div>
     <div class="field"><label for="f-est">Estado</label><select id="f-est"><option>Abierto</option><option>Cerrado</option></select></div>
     <div class="field"><label for="f-cie">Fecha de cierre</label><input type="datetime-local" id="f-cie" value="${S.config.now}"><div class="help">Solo se usa si el estado es Cerrado.</div></div></div>`,"Crear ticket",()=>{
       const cli=val("f-cli"),est=val("f-est");if(cli.length<3)return"Escribe el nombre del cliente.";
       S.seq.ticket++;const id=String(S.seq.ticket);S.tickets.push({id,cliente:cli,estado:est,cierre:est==="Cerrado"?val("f-cie"):null,tasks:[]});UI.openTk=id;save();toast(`Ticket #${id} creado. Agrégale tareas.`)})},
   newtask(b){const t=ticket(b.dataset.tk);const d=S.config.now.slice(0,10);
-    dialog(`Agregar tarea al ticket #${t.id}`,`<div class="form"><div class="field"><label for="f-us">Usuario GLPI</label><select id="f-us">${S.glpiUsers.map(u=>`<option value="${u.user}">${u.user} (${esc(u.nombre)})</option>`).join("")}</select></div>
+    dialog(`Agregar tarea al ticket #${t.id}`,`<div class="dlg-guide"><b>Qué hacer (HE-GLPI-01 · 02 · 03)</b><ul><li>Indica quién hizo la tarea, categoría, inicio, fin y el trabajo realizado. El cliente (${esc(t.cliente)}) y el ticket #${t.id} se toman del ticket.</li><li><b>Standby</b> se descarta y no genera horas extras.</li><li>Solo cuenta lo que cae fuera del turno (L–V 09:00–18:00 de referencia) o en sábado, domingo o feriado.</li><li>El ticket debe estar <b>Cerrado</b> para que la tarea se procese.</li></ul></div><div class="form"><div class="field"><label for="f-us">Usuario GLPI</label><select id="f-us">${S.glpiUsers.map(u=>`<option value="${u.user}">${u.user} (${esc(u.nombre)})</option>`).join("")}</select></div>
     <div class="field"><label for="f-cat">Categoría</label><select id="f-cat"><option>Soporte</option><option>Proyectos</option><option>Standby</option></select></div>
     <div class="field"><label for="f-i">Inicio</label><input type="datetime-local" id="f-i" value="${d}T18:00"></div>
     <div class="field"><label for="f-f">Fin</label><input type="datetime-local" id="f-f" value="${d}T20:30"></div>
@@ -602,7 +646,8 @@ function render(){
   $("#period").innerHTML=ps.map(p=>`<option value="${p.start}" ${p.start===UI.period?"selected":""}>${p.label}${p.start===periodOf(S.config.now).start?" (actual)":""}</option>`).join("");
   $("#period").disabled=!["inicio","horas"].includes(r);
   if(!R.roles.includes(role)){$("#view").innerHTML=`<div class="card denied"><b>No tienes acceso a ${R.t}</b><p class="sub">Esta sección es para: ${R.roles.map(x=>ROLES[x].rol).join(", ")}. Cambia el rol en “Ver como” para probarla.</p><button class="btn btn-primary" data-go="inicio">Ir a Inicio</button></div>`;return}
-  $("#view").innerHTML=V[r]();
+  CURV=r;$("#view").innerHTML=V[r]();
+  document.querySelectorAll("details.guide").forEach(d=>d.ontoggle=()=>{UI.g[d.dataset.k]=d.open});
   const q=$("#q");if(q){q.oninput=e=>{UI.q=e.target.value.trim().toLowerCase();const pos=e.target.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(pos,pos)}}
   const ef=$("#empf");if(ef)ef.onchange=e=>{UI.emp=e.target.value;render()};
   document.querySelectorAll("details.tk").forEach(d=>d.ontoggle=()=>{if(d.open)UI.openTk=d.dataset.tk;else if(UI.openTk===d.dataset.tk)UI.openTk=null});
