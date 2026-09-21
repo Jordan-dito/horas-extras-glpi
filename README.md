@@ -4,7 +4,7 @@ Prototipo navegable del submódulo **Horas Extras** (historias HE-GLPI-01 a HE-G
 Es un solo archivo `index.html`, sin backend: los datos son de demostración y se guardan en el navegador (localStorage).
 
 ## Cómo usarlo
-- Cambia el rol con **"Ver como"**: Colaborador, Coordinador SAC, Recursos Humanos o Administrador.
+- Cambia el rol con **"Ver como"**: Colaborador, Coordinador SAC o Recursos Humanos.
 - **Reiniciar** (barra lateral) devuelve los datos al estado inicial.
 
 ## Guion de validación

@@ -256,7 +256,6 @@ details.tk[open] summary .chev{transform:rotate(90deg)}
           <option value="colab">Ver como: Colaborador</option>
           <option value="sac">Ver como: Coordinador SAC</option>
           <option value="rrhh">Ver como: Recursos Humanos</option>
-          <option value="admin">Ver como: Administrador</option>
         </select>
         <label class="visually-hidden" for="period">Período de nómina</label>
         <select id="period" class="select"></select>
@@ -316,15 +315,15 @@ const SEED=()=>({
 });
 let S; try{S=JSON.parse(localStorage.getItem(STORE))}catch(e){}
 const UI={role:"colab",period:null,cat:"",q:"",emp:"",sortDesc:true,runOpen:null,g:{}};
-const ROLES={colab:{nombre:"María Salazar",rol:"Colaboradora · Soporte N2",empId:"e1"},sac:{nombre:"Diego Andrade",rol:"Coordinador SAC"},rrhh:{nombre:"Paola Ríos",rol:"Recursos Humanos"},admin:{nombre:"Jordan Lapo",rol:"Administrador del sistema"}};
+const ROLES={colab:{nombre:"María Salazar",rol:"Colaboradora · Soporte N2",empId:"e1"},sac:{nombre:"Diego Andrade",rol:"Coordinador SAC"},rrhh:{nombre:"Paola Ríos",rol:"Recursos Humanos"}};
 const ROUTES={
-  inicio:{t:"Inicio",roles:["colab","sac","rrhh","admin"],icon:'<path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>'},
-  horas:{t:"Horas extras",roles:["colab","sac","rrhh","admin"],icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'},
-  homologacion:{t:"Homologación",roles:["sac","admin"],icon:'<path d="M8 7h11M8 7l3-3M8 7l3 3M16 17H5m11 0l-3-3m3 3l-3 3"/>'},
-  glpi:{t:"Tickets GLPI",roles:["sac","admin"],icon:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>'},
-  nomina:{t:"Empleados Nómina",roles:["rrhh","admin"],icon:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5M16 4.5a3.5 3.5 0 010 7M18 14.5c2 .6 3.5 2.3 3.5 5.5"/>'},
-  guia:{t:"Guía del flujo",roles:["colab","sac","rrhh","admin"],icon:'<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5M9 8h6M9 12h6"/>'},
-  sync:{t:"Sincronización",roles:["admin"],icon:'<path d="M20 12a8 8 0 01-14 5.3M4 12a8 8 0 0114-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>'}
+  inicio:{t:"Inicio",roles:["colab","sac","rrhh"],icon:'<path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>'},
+  horas:{t:"Horas extras",roles:["colab","sac","rrhh"],icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'},
+  homologacion:{t:"Homologación",roles:["sac"],icon:'<path d="M8 7h11M8 7l3-3M8 7l3 3M16 17H5m11 0l-3-3m3 3l-3 3"/>'},
+  glpi:{t:"Tickets GLPI",roles:["sac"],icon:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>'},
+  nomina:{t:"Empleados Nómina",roles:["rrhh"],icon:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5M16 4.5a3.5 3.5 0 010 7M18 14.5c2 .6 3.5 2.3 3.5 5.5"/>'},
+  guia:{t:"Guía del flujo",roles:["colab","sac","rrhh"],icon:'<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5M9 8h6M9 12h6"/>'},
+  sync:{t:"Sincronización",roles:["sac"],icon:'<path d="M20 12a8 8 0 01-14 5.3M4 12a8 8 0 0114-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>'}
 };
 /* ============ Utilidades ============ */
 const $=s=>document.querySelector(s);
@@ -408,7 +407,7 @@ const GUIDE={
   colab:{hu:"HE-GLPI-04",que:"Resumen de las horas extras que el sistema calculó para ti a partir de las tareas de tus tickets cerrados en GLPI, dentro del período de nómina.",
    hacer:["Revisa tu <b>tiempo elegible</b> y cuántos registros de GLPI lo forman.","Pulsa <b>Ver mis horas extras</b> para ver ticket, cliente, inicio, fin y tiempo de cada registro.","Si falta una tarea, revisa si su ticket ya está Cerrado: las tareas de tickets abiertos se procesan cuando se cierran.","Si trabajaste fuera de turno y no aparece nada, avisa a SAC: puede ser un problema con tu número de identificación."],reglas:REGLAS_BASE},
   def:{hu:"HE-GLPI-01 a 05",que:"Estado de la integración GLPI → Nómina en el período: cuánto se registró y cuánto quedó sin homologar.",
-   hacer:["Revisa la <b>última sincronización</b> y cuántos registros quedaron sin homologar.","<b>Coordinador SAC:</b> entra a <b>Homologación</b> y corrige los números pendientes; en <b>Tickets GLPI</b> puedes crear tickets y tareas de prueba.","<b>Recursos Humanos:</b> atiende las solicitudes de corrección en <b>Empleados Nómina</b>.","<b>Administrador:</b> ejecuta o revisa la <b>Sincronización</b> y su bitácora."],reglas:REGLAS_BASE}},
+   hacer:["Revisa la <b>última sincronización</b> y cuántos registros quedaron sin homologar.","<b>Coordinador SAC:</b> entra a <b>Homologación</b> y corrige los números pendientes; en <b>Tickets GLPI</b> puedes crear tickets y tareas de prueba, y en <b>Sincronización</b> ejecutar el proceso y revisar su bitácora.","<b>Recursos Humanos:</b> atiende las solicitudes de corrección en <b>Empleados Nómina</b>."],reglas:REGLAS_BASE}},
  horas:{
   colab:{hu:"HE-GLPI-04",que:"Tus registros de horas extras con origen GLPI.",
    hacer:["Busca por ticket, cliente o descripción, o filtra por <b>Soporte</b> / <b>Proyectos</b>.","Selecciona un registro para abrir el detalle: origen, ticket, inicio, fin, tiempo elegible, categoría, descripción, cliente y trazabilidad.","En la franja del día, la barra roja es el tiempo elegible y el fondo gris es tu turno."],
@@ -441,9 +440,8 @@ V.inicio=()=>{
   const r=UI.role, n=ROLES[r].nombre.split(" ")[0];
   let quick="";
   if(r==="colab")quick=`<button class="btn btn-primary" data-go="horas">Ver mis horas extras</button>`;
-  if(r==="sac")quick=`<button class="btn btn-primary" data-go="homologacion">Revisar pendientes (${pend})</button><button class="btn" data-go="glpi">Ver tickets GLPI</button>`;
+  if(r==="sac")quick=`<button class="btn btn-primary" data-go="homologacion">Revisar pendientes (${pend})</button><button class="btn" data-go="glpi">Ver tickets GLPI</button><button class="btn" data-go="sync">Sincronización</button>`;
   if(r==="rrhh")quick=`<button class="btn btn-primary" data-go="nomina">Solicitudes de corrección (${S.sol.filter(s=>s.estado==="abierta").length})</button><button class="btn" data-go="horas">Horas extras del equipo</button>`;
-  if(r==="admin")quick=`<button class="btn btn-primary" data-act="run">Ejecutar sincronización</button><button class="btn" data-go="sync">Ver historial</button>`;
   return head(`Hola, ${esc(n)}`,`Período de nómina ${p.label} · cierre en ${left} días`,quick)+`
   <div class="kpis">
     <div class="kpi"><span>${r==="colab"?"Tu tiempo elegible":"Tiempo elegible del equipo"}</span><b>${fMin(tot)}</b><small>${es.length} registros de GLPI</small></div>
@@ -516,7 +514,7 @@ V.glpi=()=>{
   const ts=[...S.tickets].sort((a,b)=>b.id.localeCompare(a.id)).filter(t=>!UI.q||[t.id,t.cliente,...t.tasks.map(k=>k.user+" "+k.desc)].join(" ").toLowerCase().includes(UI.q));
   const porProc=S.tickets.reduce((a,t)=>a+t.tasks.filter(k=>taskStatus(t,k).includes("Por procesar")).length,0);
   return head("Tickets GLPI","Vista de la fuente. Aquí puedes crear tickets y tareas de prueba, cerrar tickets y ver qué resultado tuvo cada tarea en la integración.",`<button class="btn" data-act="users">Usuarios GLPI</button><button class="btn btn-primary" data-act="newticket">Nuevo ticket</button>`)+
-  (porProc?`<div class="banner"><span><b>${porProc}</b> tarea(s) por procesar. Entran en la próxima sincronización.</span>${UI.role==="admin"||UI.role==="sac"?`<button class="btn btn-primary" data-act="run">Sincronizar ahora</button>`:""}</div>`:"")+
+  (porProc?`<div class="banner"><span><b>${porProc}</b> tarea(s) por procesar. Entran en la próxima sincronización.</span>${UI.role==="sac"?`<button class="btn btn-primary" data-act="run">Sincronizar ahora</button>`:""}</div>`:"")+
   `<div class="toolbar"><div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" aria-label="Buscar" placeholder="Buscar ticket, cliente o usuario" value="${esc(UI.q)}"></div></div>
   <div class="card">${ts.map(t=>`<details class="tk" ${UI.openTk===t.id?"open":""} data-tk="${t.id}"><summary>
     <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
